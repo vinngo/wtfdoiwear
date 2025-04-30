@@ -7,10 +7,13 @@ import {
   TouchableOpacity,
   Image,
   SafeAreaView,
+  Modal,
   StatusBar,
+  TouchableWithoutFeedback,
+  Keyboard,
   ListRenderItem,
 } from "react-native";
-import { Plus, Shuffle } from "lucide-react-native";
+import { Plus, Shuffle, X, Camera, ImageIcon } from "lucide-react-native";
 
 interface Category {
   id: string;
@@ -95,7 +98,7 @@ export default function ClosetScreen() {
     <SafeAreaView style={styles.container}>
       <StatusBar barStyle="dark-content" backgroundColor="#fff" />
       <View style={styles.topBar}>
-        <Text style={styles.title}>My Fucking Closet</Text>
+        <Text style={styles.title}>My ####-ing Closet</Text>
         <TouchableOpacity style={styles.avatarContainer}>
           <Image
             source={{ uri: "https://via.placeholder.com/150" }}
