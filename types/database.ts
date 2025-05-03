@@ -6,7 +6,15 @@ export interface clothing_item {
   image_url: string;
 }
 
-export interface category {
+export interface Category {
   id: number;
   name: string;
 }
+
+export const CategoryList = [
+  "Tops",
+  "Bottoms",
+  "Outerwear",
+  "Shoes",
+  "Accessories",
+];

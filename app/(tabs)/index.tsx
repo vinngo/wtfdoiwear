@@ -79,7 +79,8 @@ export default function Home() {
 
   const handleLogin = async () => {
     if (isValid) {
-      await handleSendSMS();
+      router.push("/closet");
+      //await handleSendSMS(); uncomment this once twilio lets us send SMS
     }
   };
 

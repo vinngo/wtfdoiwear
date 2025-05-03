@@ -15,6 +15,7 @@ export default function TabLayout() {
     >
       <Stack.Screen name="index"></Stack.Screen>
       <Stack.Screen name="closet"></Stack.Screen>
+      <Stack.Screen name="swipe"></Stack.Screen>
     </Stack>
   );
 }

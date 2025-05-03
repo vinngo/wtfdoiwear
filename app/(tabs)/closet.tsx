@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   View,
   Text,
@@ -14,6 +14,11 @@ import {
   ListRenderItem,
 } from "react-native";
 import { Plus, Shuffle, X, Camera, ImageIcon } from "lucide-react-native";
+import { useClosetStore } from "@/lib/stores/clothingStore";
+import { supabase } from "@/lib/supabase";
+import { CategoryList } from "@/types/database";
+import { useRouter } from "expo-router";
+import { CameraScreen } from "@/components/Camera";
 
 interface Category {
   id: string;
@@ -65,6 +70,10 @@ export default function ClosetScreen() {
     categories[0].id,
   );
 
+  const [modalVisible, setModalVisible] = useState(false);
+  const fetchItems = useClosetStore((state) => state.fetchItems);
+  const router = useRouter();
+
   const renderCategoryItem: ListRenderItem<Category> = ({ item }) => (
     <TouchableOpacity
       style={[
@@ -94,11 +103,37 @@ export default function ClosetScreen() {
     </View>
   );
 
+  //when user navigates to the ClosetScreen
+  //on log in -> fetches data
+  //anywhere else -> uses cached data in the store.
+  useEffect(() => {
+    const init = async () => {
+      try {
+        const {
+          data: { session },
+          error,
+        } = await supabase.auth.getSession();
+
+        if (error || !session) {
+          console.error("session not found!");
+        }
+
+        for (const category of CategoryList) {
+          await fetchItems(category);
+        }
+      } catch (e) {
+        console.error("could not verify user session!", e);
+      }
+    };
+
+    // init(); uncomment this once we fix everything else...
+  }, []);
+
   return (
     <SafeAreaView style={styles.container}>
       <StatusBar barStyle="dark-content" backgroundColor="#fff" />
       <View style={styles.topBar}>
-        <Text style={styles.title}>My ####-ing Closet</Text>
+        <Text style={styles.title}>My F-ing Closet</Text>
         <TouchableOpacity style={styles.avatarContainer}>
           <Image
             source={{ uri: "https://via.placeholder.com/150" }}
@@ -122,7 +157,10 @@ export default function ClosetScreen() {
         <Text style={styles.selectedCategoryTitle}>
           {categories.find((cat) => cat.id === selectedCategory)?.name}
         </Text>
-        <TouchableOpacity style={styles.swipeModeButton}>
+        <TouchableOpacity
+          style={styles.swipeModeButton}
+          onPress={() => router.push("/swipe")}
+        >
           <Shuffle size={16} color="#333" />
           <Text style={styles.swipeModeText}>Swipe Mode</Text>
         </TouchableOpacity>
@@ -136,9 +174,39 @@ export default function ClosetScreen() {
         contentContainerStyle={styles.clothingList}
       />
 
-      <TouchableOpacity style={styles.fab}>
+      <TouchableOpacity
+        style={styles.fab}
+        onPress={() => setModalVisible(true)}
+      >
         <Plus size={24} color="#fff" />
       </TouchableOpacity>
+      <Modal
+        animationType="fade"
+        transparent={true}
+        visible={modalVisible}
+        onRequestClose={() => setModalVisible(false)}
+      >
+        <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+          <View style={styles.modalOverlay}>
+            <View style={styles.modalContent}>
+              <View style={styles.modalHeader}>
+                <Text style={styles.modalTitle}>Add New Item</Text>
+                <TouchableOpacity onPress={() => setModalVisible(false)}>
+                  <X size={24} color="#333" />
+                </TouchableOpacity>
+              </View>
+
+              {/* Add your form inputs/buttons here */}
+              <View style={styles.modalBody}>
+                <TouchableOpacity style={styles.imageButton}>
+                  <Camera size={20} color="#fff" />
+                  <Text style={styles.imageButtonText}>Take Photo</Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+          </View>
+        </TouchableWithoutFeedback>
+      </Modal>
     </SafeAreaView>
   );
 }
@@ -261,5 +329,58 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.25,
     shadowRadius: 3.84,
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: "rgba(0, 0, 0, 0.3)",
+    justifyContent: "center",
+    alignItems: "center",
+    padding: 24,
+  },
+
+  modalContent: {
+    width: "100%",
+    backgroundColor: "#fff",
+    borderRadius: 20,
+    padding: 20,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25,
+    shadowRadius: 4,
+    elevation: 5,
+  },
+
+  modalHeader: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: 16,
+  },
+
+  modalTitle: {
+    fontSize: 18,
+    fontWeight: "600",
+    color: "#333",
+  },
+
+  modalBody: {
+    gap: 12,
+  },
+
+  imageButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    backgroundColor: "#333",
+    borderRadius: 12,
+  },
+
+  imageButtonText: {
+    color: "#fff",
+    fontSize: 14,
+    fontWeight: "500",
+    marginLeft: 8,
   },
 });
